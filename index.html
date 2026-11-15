@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tideway Steering Viewer</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+*{box-sizing:border-box}body{margin:0;font:15px system-ui,sans-serif;color:#172b35;background:#eef3f4}.top{padding:16px 20px;background:#12313b;color:#fff;display:flex;align-items:center;justify-content:space-between}.top h1{font-size:20px;margin:0}.layout{display:grid;grid-template-columns:300px 1fr;height:calc(100vh - 60px)}aside{padding:18px;background:#fff;overflow:auto;border-right:1px solid #d7e0e2}#map{height:100%;background:#dce9e8}.card{padding:13px 0;border-bottom:1px solid #e3e9ea}.card h2{font-size:14px;margin:0 0 10px}.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{background:#eef5f4;border-radius:8px;padding:10px}.stat b{display:block;font-size:19px}.muted{font-size:12px;color:#60747b;line-height:1.5}.btn{display:inline-block;padding:9px 12px;background:#087f79;color:white;border-radius:6px;cursor:pointer;border:0;font:inherit}.reach{display:flex;align-items:center;gap:8px;margin:8px 0}.reach input{accent-color:#087f79}.warning{padding:10px;background:#fff7df;border-radius:6px;font-size:12px;line-height:1.5;margin-top:12px}.leaflet-control-attribution{font-size:10px!important}
+@media(max-width:700px){.layout{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:calc(100vh - 60px)}aside{max-height:230px;border-right:0;border-bottom:1px solid #d7e0e2;display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px}.card{padding:5px}}
+</style></head><body>
+<header class="top"><h1>🚣 Tideway Steering Viewer</h1><span style="font-size:12px">Putney Bridge ↔ Chiswick Bridge</span></header>
+<main class="layout"><aside>
+<section class="card"><h2>YOUR ROW</h2><label class="btn" for="file">Choose GPX file</label><input id="file" type="file" accept=".gpx,application/gpx+xml,application/xml,text/xml" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden" aria-label="Choose GPX file"><p id="filename" class="muted">Choose a GPX file from your device. It stays in this browser.</p></section>
+<section class="card"><h2>ROUTE</h2><div class="stats"><div class="stat"><b id="distance">—</b><span class="muted">distance</span></div><div class="stat"><b id="points">—</b><span class="muted">track points</span></div></div></section>
+<section class="card mapcard"><h2>PLA DEPTH CHARTS</h2><p class="muted">Original PLA sheets are positioned separately for each map insert using its printed coordinate grid. Depths are relative to local chart datum.</p><div id="layers"></div><label class="muted">Chart opacity <input id="opacity" type="range" min="20" max="100" value="82"></label></section>
+<section class="card"><h2>MAP</h2><p class="muted">OpenStreetMap tiles are requested only for the visible map area. Browser caching is left enabled.</p><a class="muted" href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noopener">Report an OpenStreetMap issue</a></section>
+<div class="warning"><b>Depths vary with the tide.</b> Charted depth is reduced to chart datum and is not the water depth at your rowing time. This viewer is for reviewing tracks and steering, not live navigation. Check current PLA notices and conditions.</div>
+</aside><div id="map"></div></main>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const map=L.map('map').setView([51.475,-.236],14);
+const streets=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>'}).addTo(map);
+map.createPane('routePane');map.getPane('routePane').style.zIndex=450;
+const chartLayer=L.layerGroup().addTo(map);
+const overlayTiles=[];
+fetch('charts/panels.json?v=12').then(r=>{if(!r.ok)throw Error('Chart metadata unavailable');return r.json()}).then(panels=>{
+  const sheetGroups=new Map();
+  for(const panel of panels){
+    if(!sheetGroups.has(panel.sheet))sheetGroups.set(panel.sheet,L.layerGroup().addTo(chartLayer));
+    const tile=L.imageOverlay(panel.file+'?v=12',panel.bounds,{opacity:.82,interactive:false});
+    const clipPath=panel.clip_polygon
+      ? `polygon(${panel.clip_polygon.map(([x,y])=>`${x}% ${y}%`).join(',')})`
+      : `inset(${panel.clip.map(v=>v+'%').join(' ')})`;
+    tile.on('add',()=>{tile.getElement().style.clipPath=clipPath});
+    tile.addTo(sheetGroups.get(panel.sheet));
+    overlayTiles.push(tile);
+  }
+  for(const sheet of [...sheetGroups.keys()].sort((a,b)=>a-b)){
+    const row=document.createElement('div');row.className='reach';
+    const label=document.createElement('label');label.className='reach';
+    const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.checked=true;
+    checkbox.setAttribute('aria-label',`Show PLA ${sheet} PNG`);
+    checkbox.onchange=()=>checkbox.checked?sheetGroups.get(sheet).addTo(chartLayer):chartLayer.removeLayer(sheetGroups.get(sheet));
+    const title=document.createElement('span');title.textContent=`PLA ${sheet}.png`;
+    label.append(checkbox,title);
+    const link=document.createElement('a');link.href=`charts/${sheet}.pdf`;link.textContent='PDF';link.target='_blank';link.rel='noopener';link.className='muted';
+    row.append(label,link);document.querySelector('#layers').append(row);
+  }
+}).catch(err=>{document.querySelector('#layers').textContent=err.message});
+L.control.layers({'OpenStreetMap':streets},{'PLA depth charts':chartLayer},{collapsed:false}).addTo(map);
+document.querySelector('#opacity').oninput=e=>overlayTiles.forEach(tile=>tile.setOpacity(e.target.value/100));
+let route;
+document.querySelector('#file').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const xml=new DOMParser().parseFromString(await f.text(),'application/xml');if(xml.querySelector('parsererror'))throw Error('Could not read this GPX file.');const pts=[...xml.querySelectorAll('trkpt,rtept,wpt')].map(p=>[+p.getAttribute('lat'),+p.getAttribute('lon')]).filter(p=>Number.isFinite(p[0])&&Number.isFinite(p[1]));if(pts.length<2)throw Error('No track points found.');if(route)map.removeLayer(route);const line=L.polyline(pts,{pane:'routePane',color:'#ed4f38',weight:4,opacity:.95});const start=L.circleMarker(pts[0],{pane:'routePane',radius:6,color:'#fff',weight:2,fillColor:'#158a63',fillOpacity:1});route=L.featureGroup([line,start]).addTo(map);const km=pts.slice(1).reduce((s,p,i)=>s+map.distance(pts[i],p),0)/1000;document.querySelector('#distance').textContent=km.toFixed(2)+' km';document.querySelector('#points').textContent=pts.length.toLocaleString();document.querySelector('#filename').textContent=f.name;map.fitBounds(route.getBounds(),{padding:[24,24]});}catch(err){alert(err.message)}};
+</script></body></html>
