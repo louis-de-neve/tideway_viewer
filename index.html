@@ -6,12 +6,13 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 *{box-sizing:border-box}body{margin:0;font:15px system-ui,sans-serif;color:#172b35;background:#eef3f4}.top{padding:16px 20px;background:#12313b;color:#fff;display:flex;align-items:center;justify-content:space-between}.top h1{font-size:20px;margin:0}.layout{display:grid;grid-template-columns:300px 1fr;height:calc(100vh - 60px)}aside{padding:18px;background:#fff;overflow:auto;border-right:1px solid #d7e0e2}#map{height:100%;background:#dce9e8}.card{padding:13px 0;border-bottom:1px solid #e3e9ea}.card h2{font-size:14px;margin:0 0 10px}.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{background:#eef5f4;border-radius:8px;padding:10px}.stat b{display:block;font-size:19px}.muted{font-size:12px;color:#60747b;line-height:1.5}.btn{display:inline-block;padding:9px 12px;background:#087f79;color:white;border-radius:6px;cursor:pointer;border:0;font:inherit}.reach{display:flex;align-items:center;gap:8px;margin:8px 0}.reach input{accent-color:#087f79}.warning{padding:10px;background:#fff7df;border-radius:6px;font-size:12px;line-height:1.5;margin-top:12px}.leaflet-control-attribution{font-size:10px!important}
+.track-row{display:grid;grid-template-columns:20px minmax(0,1fr) 38px 24px;gap:6px;align-items:center;margin:8px 0;padding:8px;background:#f0f6f6;border-radius:6px}.track-name{width:100%;min-width:0;padding:5px;border:1px solid #ccd9db;border-radius:4px;font:inherit}.track-color{width:38px;height:30px;padding:0;border:0;background:transparent;cursor:pointer}.track-remove{border:0;background:transparent;color:#60747b;font-size:20px;cursor:pointer}.track-controls{grid-column:1/-1;display:flex;align-items:center;gap:5px}.track-controls label{font-size:11px;color:#60747b}.track-opacity{min-width:0;flex:1;accent-color:#087f79}.track-opacity-value{width:35px;text-align:right;font-size:11px;color:#60747b}.track-order{width:24px;height:24px;padding:0;border:1px solid #ccd9db;border-radius:4px;background:#fff;color:#172b35;cursor:pointer}.track-order:disabled{opacity:.4;cursor:default}.track-details{grid-column:1/-1;font-size:11px;color:#60747b}
 @media(max-width:700px){.layout{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:calc(100vh - 60px)}aside{max-height:230px;border-right:0;border-bottom:1px solid #d7e0e2;display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px}.card{padding:5px}}
 </style></head><body>
 <header class="top"><h1>🚣 Tideway Steering Viewer</h1><span style="font-size:12px">Putney Bridge ↔ Chiswick Bridge</span></header>
 <main class="layout"><aside>
-<section class="card"><h2>YOUR ROW</h2><label class="btn" for="file">Choose GPX file</label><input id="file" type="file" accept=".gpx,application/gpx+xml,application/xml,text/xml" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden" aria-label="Choose GPX file"><p id="filename" class="muted">Choose a GPX file from your device. It stays in this browser.</p></section>
-<section class="card"><h2>ROUTE</h2><div class="stats"><div class="stat"><b id="distance">—</b><span class="muted">distance</span></div><div class="stat"><b id="points">—</b><span class="muted">track points</span></div></div></section>
+<section class="card"><h2>YOUR ROWS</h2><label class="btn" for="file">Add GPX files</label><input id="file" type="file" multiple accept=".gpx,application/gpx+xml,application/xml,text/xml" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden" aria-label="Add GPX files"><p id="filename" class="muted">Choose one or more GPX files. They stay in this browser.</p><div id="tracks"></div></section>
+<section class="card"><h2>VISIBLE ROUTES</h2><div class="stats"><div class="stat"><b id="distance">—</b><span class="muted">distance</span></div><div class="stat"><b id="points">—</b><span class="muted">track points</span></div></div></section>
 <section class="card mapcard"><h2>PLA DEPTH CHARTS</h2><p class="muted">Original PLA sheets are positioned separately for each map insert using its printed coordinate grid. Depths are relative to local chart datum.</p><div id="layers"></div><label class="muted">Chart opacity <input id="opacity" type="range" min="20" max="100" value="82"></label></section>
 <section class="card"><h2>MAP</h2><p class="muted">OpenStreetMap tiles are requested only for the visible map area. Browser caching is left enabled.</p><a class="muted" href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noopener">Report an OpenStreetMap issue</a></section>
 <div class="warning"><b>Depths vary with the tide.</b> Charted depth is reduced to chart datum and is not the water depth at your rowing time. This viewer is for reviewing tracks and steering, not live navigation. Check current PLA notices and conditions.</div>
@@ -43,12 +44,118 @@ fetch('charts/panels.json?v=12').then(r=>{if(!r.ok)throw Error('Chart metadata u
     checkbox.onchange=()=>checkbox.checked?sheetGroups.get(sheet).addTo(chartLayer):chartLayer.removeLayer(sheetGroups.get(sheet));
     const title=document.createElement('span');title.textContent=`PLA ${sheet}.png`;
     label.append(checkbox,title);
-    const link=document.createElement('a');link.href=`charts/${sheet}.pdf`;link.textContent='PDF';link.target='_blank';link.rel='noopener';link.className='muted';
+    const link=document.createElement('a');link.href=`charts/${sheet}.png`;link.textContent='PNG';link.target='_blank';link.rel='noopener';link.className='muted';
     row.append(label,link);document.querySelector('#layers').append(row);
   }
 }).catch(err=>{document.querySelector('#layers').textContent=err.message});
 L.control.layers({'OpenStreetMap':streets},{'PLA depth charts':chartLayer},{collapsed:false}).addTo(map);
 document.querySelector('#opacity').oninput=e=>overlayTiles.forEach(tile=>tile.setOpacity(e.target.value/100));
-let route;
-document.querySelector('#file').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const xml=new DOMParser().parseFromString(await f.text(),'application/xml');if(xml.querySelector('parsererror'))throw Error('Could not read this GPX file.');const pts=[...xml.querySelectorAll('trkpt,rtept,wpt')].map(p=>[+p.getAttribute('lat'),+p.getAttribute('lon')]).filter(p=>Number.isFinite(p[0])&&Number.isFinite(p[1]));if(pts.length<2)throw Error('No track points found.');if(route)map.removeLayer(route);const line=L.polyline(pts,{pane:'routePane',color:'#ed4f38',weight:4,opacity:.95});const start=L.circleMarker(pts[0],{pane:'routePane',radius:6,color:'#fff',weight:2,fillColor:'#158a63',fillOpacity:1});route=L.featureGroup([line,start]).addTo(map);const km=pts.slice(1).reduce((s,p,i)=>s+map.distance(pts[i],p),0)/1000;document.querySelector('#distance').textContent=km.toFixed(2)+' km';document.querySelector('#points').textContent=pts.length.toLocaleString();document.querySelector('#filename').textContent=f.name;map.fitBounds(route.getBounds(),{padding:[24,24]});}catch(err){alert(err.message)}};
+const routes=[];
+const palette=['#ed4f38','#0b84a5','#8b5cf6','#15956b','#d18b16','#d9468d'];
+
+function parseGpx(source){
+  const xml=new DOMParser().parseFromString(source,'application/xml');
+  if(xml.querySelector('parsererror'))throw Error('This GPX file is not valid XML.');
+  const elements=[...xml.getElementsByTagName('*')];
+  const ofType=name=>elements.filter(element=>element.localName===name);
+  const points=nodes=>nodes.filter(node=>node.hasAttribute('lat')&&node.hasAttribute('lon'))
+    .map(node=>[Number(node.getAttribute('lat')),Number(node.getAttribute('lon'))])
+    .filter(([lat,lon])=>Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180);
+  const children=(parent,name)=>points([...parent.children].filter(child=>child.localName===name));
+  let segments=ofType('trkseg').map(segment=>children(segment,'trkpt'));
+  segments.push(...ofType('rte').map(route=>children(route,'rtept')));
+  if(!segments.length){
+    const tracks=points(ofType('trkpt'));
+    const waypoints=points(ofType('wpt'));
+    segments=[tracks.length?tracks:waypoints];
+  }
+  segments=segments.filter(segment=>segment.length>=2);
+  if(!segments.length)throw Error('No route with at least two points was found.');
+  return segments;
+}
+
+function updateTotals(){
+  const visible=routes.filter(route=>route.visible);
+  const distance=visible.reduce((total,route)=>total+route.metres,0);
+  const points=visible.reduce((total,route)=>total+route.points,0);
+  document.querySelector('#distance').textContent=visible.length?(distance/1000).toFixed(2)+' km':'—';
+  document.querySelector('#points').textContent=visible.length?points.toLocaleString():'—';
+}
+
+function fitVisibleRoutes(){
+  const bounds=L.latLngBounds([]);
+  for(const route of routes)if(route.visible)bounds.extend(route.group.getBounds());
+  if(bounds.isValid())map.fitBounds(bounds,{padding:[24,24]});
+}
+
+function syncRouteOrder(){
+  const list=document.querySelector('#tracks');
+  for(const route of routes)list.append(route.row);
+  routes.forEach((route,index)=>{
+    route.up.disabled=index===0;
+    route.down.disabled=index===routes.length-1;
+  });
+  for(const route of [...routes].reverse())if(route.visible){
+    for(const line of route.lines)line.bringToFront();
+    route.start.bringToFront();
+  }
+}
+
+function moveRoute(route,offset){
+  const index=routes.indexOf(route);
+  const next=index+offset;
+  if(next<0||next>=routes.length)return;
+  [routes[index],routes[next]]=[routes[next],routes[index]];
+  syncRouteOrder();
+}
+
+function addRoute(file,segments){
+  const color=palette[routes.length%palette.length];
+  const lines=segments.map(points=>L.polyline(points,{pane:'routePane',color,weight:4,opacity:.95}));
+  const start=L.circleMarker(segments[0][0],{pane:'routePane',radius:6,color:'#fff',weight:2,fillColor:color,opacity:.95,fillOpacity:.95});
+  const group=L.featureGroup([...lines,start]).addTo(map);
+  const metres=segments.reduce((total,points)=>total+points.slice(1).reduce((sum,point,index)=>sum+map.distance(points[index],point),0),0);
+  const count=segments.reduce((total,points)=>total+points.length,0);
+  const route={group,lines,start,metres,points:count,visible:true,name:file.name.replace(/\.gpx$/i,''),opacity:.95};
+  routes.push(route);
+
+  const row=document.createElement('div');row.className='track-row';
+  route.row=row;
+  const visible=document.createElement('input');visible.type='checkbox';visible.checked=true;visible.setAttribute('aria-label',`Show ${file.name}`);
+  visible.onchange=()=>{route.visible=visible.checked;route.visible?group.addTo(map):map.removeLayer(group);syncRouteOrder();updateTotals()};
+  const name=document.createElement('input');name.type='text';name.className='track-name';name.value=route.name;name.setAttribute('aria-label',`Name for ${file.name}`);
+  name.oninput=()=>{route.name=name.value};
+  const picker=document.createElement('input');picker.type='color';picker.className='track-color';picker.value=color;picker.setAttribute('aria-label',`Colour for ${file.name}`);
+  picker.oninput=()=>{for(const line of lines)line.setStyle({color:picker.value});start.setStyle({fillColor:picker.value})};
+  const remove=document.createElement('button');remove.type='button';remove.className='track-remove';remove.textContent='×';remove.title=`Remove ${file.name}`;remove.setAttribute('aria-label',`Remove ${file.name}`);
+  remove.onclick=()=>{map.removeLayer(group);routes.splice(routes.indexOf(route),1);row.remove();syncRouteOrder();updateTotals();document.querySelector('#filename').textContent=routes.length?`${routes.length} GPX file${routes.length===1?'':'s'} loaded.`:'Choose one or more GPX files. They stay in this browser.'};
+  const controls=document.createElement('div');controls.className='track-controls';
+  const opacityLabel=document.createElement('label');opacityLabel.textContent='Opacity';
+  const opacity=document.createElement('input');opacity.type='range';opacity.className='track-opacity';opacity.min='0';opacity.max='100';opacity.value='95';opacity.setAttribute('aria-label',`Opacity for ${file.name}`);
+  const opacityValue=document.createElement('span');opacityValue.className='track-opacity-value';opacityValue.textContent='95%';
+  opacity.oninput=()=>{route.opacity=Number(opacity.value)/100;for(const line of lines)line.setStyle({opacity:route.opacity});start.setStyle({opacity:route.opacity,fillOpacity:route.opacity});opacityValue.textContent=`${opacity.value}%`};
+  const up=document.createElement('button');up.type='button';up.className='track-order';up.textContent='↑';up.title=`Move ${file.name} up`;up.setAttribute('aria-label',up.title);up.onclick=()=>moveRoute(route,-1);
+  const down=document.createElement('button');down.type='button';down.className='track-order';down.textContent='↓';down.title=`Move ${file.name} down`;down.setAttribute('aria-label',down.title);down.onclick=()=>moveRoute(route,1);
+  route.up=up;route.down=down;
+  controls.append(opacityLabel,opacity,opacityValue,up,down);
+  const details=document.createElement('span');details.className='track-details';details.textContent=`${count.toLocaleString()} points · ${(metres/1000).toFixed(2)} km`;
+  row.append(visible,name,picker,remove,controls,details);
+  document.querySelector('#tracks').append(row);
+  syncRouteOrder();
+  updateTotals();
+}
+
+document.querySelector('#file').onchange=async event=>{
+  const files=[...event.target.files];
+  if(!files.length)return;
+  const errors=[];
+  let added=0;
+  for(const file of files){
+    try{addRoute(file,parseGpx(await file.text()));added++}
+    catch(error){errors.push(`${file.name}: ${error.message}`)}
+  }
+  event.target.value='';
+  document.querySelector('#filename').textContent=errors.length?`${added} added. ${errors.join(' ')}`:`${routes.length} GPX file${routes.length===1?'':'s'} loaded.`;
+  if(added)fitVisibleRoutes();
+};
 </script></body></html>
