@@ -6,12 +6,23 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 *{box-sizing:border-box}body{margin:0;font:15px system-ui,sans-serif;color:#172b35;background:#eef3f4}.top{padding:16px 20px;background:#12313b;color:#fff;display:flex;align-items:center;justify-content:space-between}.top h1{font-size:20px;margin:0}.layout{display:grid;grid-template-columns:300px 1fr;height:calc(100vh - 60px)}aside{padding:18px;background:#fff;overflow:auto;border-right:1px solid #d7e0e2}#map{height:100%;background:#dce9e8}.card{padding:13px 0;border-bottom:1px solid #e3e9ea}.card h2{font-size:14px;margin:0 0 10px}.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{background:#eef5f4;border-radius:8px;padding:10px}.stat b{display:block;font-size:19px}.muted{font-size:12px;color:#60747b;line-height:1.5}.btn{display:inline-block;padding:9px 12px;background:#087f79;color:white;border-radius:6px;cursor:pointer;border:0;font:inherit}.reach{display:flex;align-items:center;gap:8px;margin:8px 0}.reach input{accent-color:#087f79}.warning{padding:10px;background:#fff7df;border-radius:6px;font-size:12px;line-height:1.5;margin-top:12px}.leaflet-control-attribution{font-size:10px!important}
-.track-row{display:grid;grid-template-columns:20px minmax(0,1fr) 38px 24px;gap:6px;align-items:center;margin:8px 0;padding:8px;background:#f0f6f6;border-radius:6px}.track-name{width:100%;min-width:0;padding:5px;border:1px solid #ccd9db;border-radius:4px;font:inherit}.track-color{width:38px;height:30px;padding:0;border:0;background:transparent;cursor:pointer}.track-remove{border:0;background:transparent;color:#60747b;font-size:20px;cursor:pointer}.track-controls{grid-column:1/-1;display:flex;align-items:center;gap:5px}.track-controls label{font-size:11px;color:#60747b}.track-opacity{min-width:0;flex:1;accent-color:#087f79}.track-opacity-value{width:35px;text-align:right;font-size:11px;color:#60747b}.track-order{width:24px;height:24px;padding:0;border:1px solid #ccd9db;border-radius:4px;background:#fff;color:#172b35;cursor:pointer}.track-order:disabled{opacity:.4;cursor:default}.track-details{grid-column:1/-1;font-size:11px;color:#60747b}
+.track-row{display:grid;grid-template-columns:20px minmax(0,1fr) 38px 24px;gap:6px;align-items:center;margin:8px 0;padding:8px;background:#f0f6f6;border-radius:6px}.track-name{width:100%;min-width:0;padding:5px;border:1px solid #ccd9db;border-radius:4px;font:inherit}.track-color{width:38px;height:30px;padding:0;border:0;background:transparent;cursor:pointer}.track-remove{border:0;background:transparent;color:#60747b;font-size:20px;cursor:pointer}.track-controls{grid-column:1/-1;display:flex;align-items:center;gap:5px}.track-controls label{font-size:11px;color:#60747b}.track-opacity{min-width:0;flex:1;accent-color:#087f79}.track-opacity-value{width:35px;text-align:right;font-size:11px;color:#60747b}.track-order{width:24px;height:24px;padding:0;border:1px solid #ccd9db;border-radius:4px;background:#fff;color:#172b35;cursor:pointer}.track-order:disabled{opacity:.4;cursor:default}.track-colouring{grid-column:1/-1;width:100%;padding:4px;border:1px solid #ccd9db;border-radius:4px;background:#fff;color:#172b35;font:inherit;font-size:12px}.track-details{grid-column:1/-1;font-size:11px;color:#60747b}.speed-legend{margin-top:10px;font-size:11px;color:#60747b}.speed-scale{height:10px;margin:5px 0 3px;border-radius:3px;background:linear-gradient(to right,#000004 0%,#230c4c 12.5%,#5a116e 25%,#8f2469 37.5%,#c13a50 50%,#e9612b 62.5%,#fb9b06 75%,#f5d949 87.5%,#fcffa4 100%)}.speed-labels{display:flex;justify-content:space-between}.speed-unknown{display:inline-block;width:10px;height:10px;background:#78858b;margin:0 3px 0 0}
+.track-width{min-width:0;flex:1;accent-color:#087f79}.track-width-value{width:35px;text-align:right;font-size:11px;color:#60747b}.scale-mode-label{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px}.scale-mode-label select{font:inherit;padding:3px;border:1px solid #ccd9db;border-radius:4px;background:#fff}.scale-inputs{display:flex;gap:8px;margin-top:8px}.scale-inputs label{display:flex;align-items:center;gap:4px;flex:1}.pace-input{width:72px;min-width:0;padding:4px;border:1px solid #ccd9db;border-radius:4px;font:inherit}.scale-error{color:#a33622;margin:6px 0}
 @media(max-width:700px){.layout{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:calc(100vh - 60px)}aside{max-height:230px;border-right:0;border-bottom:1px solid #d7e0e2;display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px}.card{padding:5px}}
 </style></head><body>
 <header class="top"><h1>🚣 Tideway Steering Viewer</h1><span style="font-size:12px">Putney Bridge ↔ Chiswick Bridge</span></header>
 <main class="layout"><aside>
-<section class="card"><h2>YOUR ROWS</h2><label class="btn" for="file">Add GPX files</label><input id="file" type="file" multiple accept=".gpx,application/gpx+xml,application/xml,text/xml" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden" aria-label="Add GPX files"><p id="filename" class="muted">Choose one or more GPX files. They stay in this browser.</p><div id="tracks"></div></section>
+<section class="card"><h2>YOUR ROWS</h2><label class="btn" for="file">Add GPX files</label><input id="file" type="file" multiple accept=".gpx,application/gpx+xml,application/xml,text/xml" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden" aria-label="Add GPX files"><p id="filename" class="muted">Choose one or more GPX files. They stay in this browser.</p><div id="tracks"></div><div id="speed-legend" class="speed-legend" hidden>
+<b>Pace (mm:ss / 500 m)</b>
+<label class="scale-mode-label" for="scale-mode">Colour limits <select id="scale-mode"><option value="auto">Auto</option><option value="custom">Set limits</option></select></label>
+<div id="custom-scale" hidden>
+<div class="scale-inputs"><label for="slow-pace">Slow <input id="slow-pace" class="pace-input" type="text" inputmode="numeric" autocomplete="off" placeholder="m:ss" aria-describedby="scale-error"></label><label for="fast-pace">Fast <input id="fast-pace" class="pace-input" type="text" inputmode="numeric" autocomplete="off" placeholder="m:ss" aria-describedby="scale-error"></label></div>
+<p id="scale-error" class="scale-error" role="status" hidden></p>
+</div>
+<div class="speed-scale" aria-hidden="true"></div><div id="speed-labels" class="speed-labels"></div>
+<p>Dark is slower; yellow is faster. Speeds outside the limits use the end colours. <span class="speed-unknown"></span>Grey: no usable timestamps.</p>
+<p id="auto-scale-note">Auto limits follow the 10th–90th percentile of moving intervals (at least 1 km/h).</p>
+</div></section>
 <section class="card"><h2>VISIBLE ROUTES</h2><div class="stats"><div class="stat"><b id="distance">—</b><span class="muted">distance</span></div><div class="stat"><b id="points">—</b><span class="muted">track points</span></div></div></section>
 <section class="card mapcard"><h2>PLA DEPTH CHARTS</h2><p class="muted">Original PLA sheets are positioned separately for each map insert using its printed coordinate grid. Depths are relative to local chart datum.</p><div id="layers"></div><label class="muted">Chart opacity <input id="opacity" type="range" min="20" max="100" value="82"></label></section>
 <section class="card"><h2>MAP</h2><p class="muted">OpenStreetMap tiles are requested only for the visible map area. Browser caching is left enabled.</p><a class="muted" href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noopener">Report an OpenStreetMap issue</a></section>
@@ -52,6 +63,77 @@ L.control.layers({'OpenStreetMap':streets},{'PLA depth charts':chartLayer},{coll
 document.querySelector('#opacity').oninput=e=>overlayTiles.forEach(tile=>tile.setOpacity(e.target.value/100));
 const routes=[];
 const palette=['#ed4f38','#0b84a5','#8b5cf6','#15956b','#d18b16','#d9468d'];
+// Samples of Matplotlib's Inferno map, from slow/dark to fast/yellow.
+const speedColors=['#000004','#230c4c','#5a116e','#8f2469','#c13a50','#e9612b','#fb9b06','#f5d949','#fcffa4'];
+const scaleMode=document.querySelector('#scale-mode');
+const slowPaceInput=document.querySelector('#slow-pace');
+const fastPaceInput=document.querySelector('#fast-pace');
+let manualScale=null;
+let lastAutoScale=null;
+const RouteCanvas=L.Layer.extend({
+  onAdd(map){
+    this.map=map;
+    this.canvas=L.DomUtil.create('canvas','',map.getPane('routePane'));
+    this.canvas.style.pointerEvents='none';
+    map.on('moveend zoomend resize',this.redraw,this);
+    this.redraw();
+  },
+  onRemove(map){
+    map.off('moveend zoomend resize',this.redraw,this);
+    if(this.frame)cancelAnimationFrame(this.frame);
+    L.DomUtil.remove(this.canvas);
+    this.map=null;
+  },
+  redraw(){
+    if(this.frame)cancelAnimationFrame(this.frame);
+    this.frame=requestAnimationFrame(()=>{this.frame=null;this.draw()});
+  },
+  draw(){
+    const map=this.map,canvas=this.canvas,size=map.getSize(),ratio=window.devicePixelRatio||1;
+    L.DomUtil.setPosition(canvas,map.containerPointToLayerPoint([0,0]));
+    canvas.style.width=size.x+'px';canvas.style.height=size.y+'px';
+    canvas.width=Math.ceil(size.x*ratio);canvas.height=Math.ceil(size.y*ratio);
+    const context=canvas.getContext('2d');
+    context.setTransform(ratio,0,0,ratio,0,0);
+    context.lineWidth=4;context.lineJoin='round';context.lineCap='round';
+    for(const route of [...routes].reverse()){
+      if(!route.visible||route.opacity===0)continue;
+      context.globalAlpha=route.opacity;
+      context.lineWidth=route.width;
+      if(route.mode==='speed'){
+        for(const edge of route.velocityEdges){
+          const from=map.latLngToContainerPoint(edge.points[0]);
+          const to=map.latLngToContainerPoint(edge.points[1]);
+          if(edge.kmh===null||edge.fromColor===edge.toColor||from.x===to.x&&from.y===to.y){
+            context.strokeStyle=edge.fromColor;
+          }else{
+            const gradient=context.createLinearGradient(from.x,from.y,to.x,to.y);
+            gradient.addColorStop(0,edge.fromColor);
+            gradient.addColorStop(1,edge.toColor);
+            context.strokeStyle=gradient;
+          }
+          context.beginPath();context.moveTo(from.x,from.y);context.lineTo(to.x,to.y);context.stroke();
+        }
+      }else{
+        context.strokeStyle=route.color;
+        for(const segment of route.segments){
+          context.beginPath();
+          segment.forEach((point,index)=>{
+            const pixel=map.latLngToContainerPoint([point.lat,point.lon]);
+            if(index)context.lineTo(pixel.x,pixel.y);else context.moveTo(pixel.x,pixel.y);
+          });
+          context.stroke();
+        }
+      }
+      const first=route.segments[0][0],pixel=map.latLngToContainerPoint([first.lat,first.lon]);
+      context.beginPath();context.arc(pixel.x,pixel.y,6,0,Math.PI*2);
+      context.fillStyle=route.color;context.fill();
+      context.lineWidth=2;context.strokeStyle='#fff';context.stroke();context.lineWidth=4;
+    }
+    context.globalAlpha=1;
+  }
+});
+const routeCanvas=new RouteCanvas().addTo(map);
 
 function parseGpx(source){
   const xml=new DOMParser().parseFromString(source,'application/xml');
@@ -59,8 +141,14 @@ function parseGpx(source){
   const elements=[...xml.getElementsByTagName('*')];
   const ofType=name=>elements.filter(element=>element.localName===name);
   const points=nodes=>nodes.filter(node=>node.hasAttribute('lat')&&node.hasAttribute('lon'))
-    .map(node=>[Number(node.getAttribute('lat')),Number(node.getAttribute('lon'))])
-    .filter(([lat,lon])=>Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180);
+    .map(node=>{
+      const lat=Number(node.getAttribute('lat'));
+      const lon=Number(node.getAttribute('lon'));
+      const timeText=[...node.children].find(child=>child.localName==='time')?.textContent.trim();
+      const parsedTime=timeText?Date.parse(timeText):NaN;
+      return {lat,lon,time:Number.isFinite(parsedTime)?parsedTime:null};
+    })
+    .filter(point=>Number.isFinite(point.lat)&&Number.isFinite(point.lon)&&Math.abs(point.lat)<=90&&Math.abs(point.lon)<=180);
   const children=(parent,name)=>points([...parent.children].filter(child=>child.localName===name));
   let segments=ofType('trkseg').map(segment=>children(segment,'trkpt'));
   segments.push(...ofType('rte').map(route=>children(route,'rtept')));
@@ -84,7 +172,7 @@ function updateTotals(){
 
 function fitVisibleRoutes(){
   const bounds=L.latLngBounds([]);
-  for(const route of routes)if(route.visible)bounds.extend(route.group.getBounds());
+  for(const route of routes)if(route.visible)bounds.extend(route.bounds);
   if(bounds.isValid())map.fitBounds(bounds,{padding:[24,24]});
 }
 
@@ -95,11 +183,132 @@ function syncRouteOrder(){
     route.up.disabled=index===0;
     route.down.disabled=index===routes.length-1;
   });
-  for(const route of [...routes].reverse())if(route.visible){
-    for(const line of route.lines)line.bringToFront();
-    route.start.bringToFront();
-  }
+  routeCanvas.redraw();
 }
+
+function velocityEdgesFor(segments){
+  const edges=[];
+  for(const segment of segments){
+    const segmentEdges=[];
+    for(let i=1;i<segment.length;i++){
+      const previous=segment[i-1],current=segment[i];
+      const elapsed=current.time-previous.time;
+      const kmh=previous.time!==null&&current.time!==null&&elapsed>0
+        ?map.distance([previous.lat,previous.lon],[current.lat,current.lon])*3600/elapsed:null;
+      segmentEdges.push({points:[[previous.lat,previous.lon],[current.lat,current.lon]],kmh});
+    }
+    segmentEdges.forEach((edge,index)=>{
+      const before=segmentEdges[index-1]?.kmh;
+      const after=segmentEdges[index+1]?.kmh;
+      edge.fromKmh=edge.kmh===null?null:(before==null?edge.kmh:(before+edge.kmh)/2);
+      edge.toKmh=edge.kmh===null?null:(after==null?edge.kmh:(edge.kmh+after)/2);
+      edges.push(edge);
+    });
+  }
+  return edges;
+}
+
+function velocityScale(speeds){
+  const sorted=speeds.filter(speed=>speed>=1).sort((a,b)=>a-b);
+  if(!sorted.length)return null;
+  let min=sorted.length<5?sorted[0]:sorted[Math.floor((sorted.length-1)*.1)];
+  let max=sorted.length<5?sorted[sorted.length-1]:sorted[Math.floor((sorted.length-1)*.9)];
+  if(max-min<.001){min=Math.max(1,min-.5);max+=.5}
+  return {min,max};
+}
+
+function formatPace(kmh){
+  const seconds=Math.round(1800/kmh);
+  return formatSeconds(seconds);
+}
+
+function formatSeconds(seconds){
+  return `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`;
+}
+
+function parsePace(value){
+  const match=/^(\d{1,3}):([0-5]\d)$/.exec(value.trim());
+  if(!match)return null;
+  const seconds=Number(match[1])*60+Number(match[2]);
+  return seconds>0?seconds:null;
+}
+
+function applyManualScale(){
+  const slowSeconds=parsePace(slowPaceInput.value);
+  const fastSeconds=parsePace(fastPaceInput.value);
+  const error=document.querySelector('#scale-error');
+  let message='';
+  if(slowSeconds===null||fastSeconds===null)message='Enter both limits as m:ss, such as 2:30. Previous valid limits remain in use.';
+  else if(fastSeconds>=slowSeconds)message='Fast pace must be shorter than slow pace. Previous valid limits remain in use.';
+  error.textContent=message;
+  error.hidden=!message;
+  slowPaceInput.setAttribute('aria-invalid',String(Boolean(message)));
+  fastPaceInput.setAttribute('aria-invalid',String(Boolean(message)));
+  if(message)return;
+  manualScale={min:1800/slowSeconds,max:1800/fastSeconds};
+  refreshSpeedColours();
+}
+
+function speedColor(kmh,scale){
+  if(kmh===null)return '#78858b';
+  if(!scale)return speedColors[0];
+  const position=Math.max(0,Math.min(speedColors.length-1,(kmh-scale.min)/(scale.max-scale.min)*(speedColors.length-1)));
+  const lower=Math.floor(position),upper=Math.ceil(position),fraction=position-lower;
+  const first=speedColors[lower],last=speedColors[upper];
+  const channel=offset=>{
+    const from=parseInt(first.slice(offset,offset+2),16);
+    const to=parseInt(last.slice(offset,offset+2),16);
+    return Math.round(from+(to-from)*fraction).toString(16).padStart(2,'0');
+  };
+  return '#'+channel(1)+channel(3)+channel(5);
+}
+
+function refreshSpeedColours(){
+  const active=routes.filter(route=>route.visible&&route.mode==='speed');
+  const legend=document.querySelector('#speed-legend');
+  legend.hidden=!active.length;
+  if(active.length){
+    const speeds=active.flatMap(route=>route.velocityEdges.map(edge=>edge.kmh).filter(speed=>speed!==null));
+    lastAutoScale=velocityScale(speeds);
+    const scale=scaleMode.value==='custom'?manualScale:lastAutoScale;
+    const labels=document.querySelector('#speed-labels');
+    document.querySelector('.speed-scale').hidden=!scale;
+    if(scale)labels.replaceChildren(...Array.from({length:5},(_,index)=>{
+      const label=document.createElement('span');
+      label.textContent=formatPace(scale.min+(scale.max-scale.min)*index/4);
+      return label;
+    }));
+    else labels.textContent='No moving intervals';
+    for(const route of active)for(const edge of route.velocityEdges){
+      edge.fromColor=speedColor(edge.fromKmh,scale);
+      edge.toColor=speedColor(edge.toKmh,scale);
+    }
+  }
+  routeCanvas.redraw();
+}
+
+scaleMode.onchange=()=>{
+  const custom=scaleMode.value==='custom';
+  document.querySelector('#custom-scale').hidden=!custom;
+  document.querySelector('#auto-scale-note').hidden=custom;
+  if(custom){
+    if(!manualScale){
+      if(lastAutoScale){
+        const slowSeconds=Math.ceil(1800/lastAutoScale.min);
+        const fastSeconds=Math.max(1,Math.min(slowSeconds-1,Math.floor(1800/lastAutoScale.max)));
+        slowPaceInput.value=formatSeconds(slowSeconds);
+        fastPaceInput.value=formatSeconds(fastSeconds);
+      }else{
+        slowPaceInput.value='3:00';
+        fastPaceInput.value='1:30';
+      }
+    }
+    applyManualScale();
+  }
+  refreshSpeedColours();
+};
+slowPaceInput.oninput=applyManualScale;
+fastPaceInput.oninput=applyManualScale;
 
 function moveRoute(route,offset){
   const index=routes.indexOf(route);
@@ -111,35 +320,52 @@ function moveRoute(route,offset){
 
 function addRoute(file,segments){
   const color=palette[routes.length%palette.length];
-  const lines=segments.map(points=>L.polyline(points,{pane:'routePane',color,weight:4,opacity:.95}));
-  const start=L.circleMarker(segments[0][0],{pane:'routePane',radius:6,color:'#fff',weight:2,fillColor:color,opacity:.95,fillOpacity:.95});
-  const group=L.featureGroup([...lines,start]).addTo(map);
-  const metres=segments.reduce((total,points)=>total+points.slice(1).reduce((sum,point,index)=>sum+map.distance(points[index],point),0),0);
+  const velocityEdges=velocityEdgesFor(segments);
+  const timedEdges=velocityEdges.filter(edge=>edge.kmh!==null).length;
+  const bounds=L.latLngBounds([]);
+  for(const segment of segments)for(const point of segment)bounds.extend([point.lat,point.lon]);
+  const metres=segments.reduce((total,points)=>total+points.slice(1).reduce((sum,point,index)=>sum+map.distance([points[index].lat,points[index].lon],[point.lat,point.lon]),0),0);
   const count=segments.reduce((total,points)=>total+points.length,0);
-  const route={group,lines,start,metres,points:count,visible:true,name:file.name.replace(/\.gpx$/i,''),opacity:.95};
+  const route={segments,velocityEdges,bounds,metres,points:count,visible:true,name:file.name.replace(/\.gpx$/i,''),color,opacity:.95,width:4,mode:'solid'};
   routes.push(route);
 
   const row=document.createElement('div');row.className='track-row';
   route.row=row;
   const visible=document.createElement('input');visible.type='checkbox';visible.checked=true;visible.setAttribute('aria-label',`Show ${file.name}`);
-  visible.onchange=()=>{route.visible=visible.checked;route.visible?group.addTo(map):map.removeLayer(group);syncRouteOrder();updateTotals()};
+  visible.onchange=()=>{route.visible=visible.checked;refreshSpeedColours();updateTotals()};
   const name=document.createElement('input');name.type='text';name.className='track-name';name.value=route.name;name.setAttribute('aria-label',`Name for ${file.name}`);
   name.oninput=()=>{route.name=name.value};
   const picker=document.createElement('input');picker.type='color';picker.className='track-color';picker.value=color;picker.setAttribute('aria-label',`Colour for ${file.name}`);
-  picker.oninput=()=>{for(const line of lines)line.setStyle({color:picker.value});start.setStyle({fillColor:picker.value})};
+  picker.oninput=()=>{route.color=picker.value;routeCanvas.redraw()};
   const remove=document.createElement('button');remove.type='button';remove.className='track-remove';remove.textContent='×';remove.title=`Remove ${file.name}`;remove.setAttribute('aria-label',`Remove ${file.name}`);
-  remove.onclick=()=>{map.removeLayer(group);routes.splice(routes.indexOf(route),1);row.remove();syncRouteOrder();updateTotals();document.querySelector('#filename').textContent=routes.length?`${routes.length} GPX file${routes.length===1?'':'s'} loaded.`:'Choose one or more GPX files. They stay in this browser.'};
+  remove.onclick=()=>{routes.splice(routes.indexOf(route),1);row.remove();syncRouteOrder();refreshSpeedColours();updateTotals();document.querySelector('#filename').textContent=routes.length?`${routes.length} GPX file${routes.length===1?'':'s'} loaded.`:'Choose one or more GPX files. They stay in this browser.'};
   const controls=document.createElement('div');controls.className='track-controls';
   const opacityLabel=document.createElement('label');opacityLabel.textContent='Opacity';
   const opacity=document.createElement('input');opacity.type='range';opacity.className='track-opacity';opacity.min='0';opacity.max='100';opacity.value='95';opacity.setAttribute('aria-label',`Opacity for ${file.name}`);
   const opacityValue=document.createElement('span');opacityValue.className='track-opacity-value';opacityValue.textContent='95%';
-  opacity.oninput=()=>{route.opacity=Number(opacity.value)/100;for(const line of lines)line.setStyle({opacity:route.opacity});start.setStyle({opacity:route.opacity,fillOpacity:route.opacity});opacityValue.textContent=`${opacity.value}%`};
+  opacity.oninput=()=>{route.opacity=Number(opacity.value)/100;routeCanvas.redraw();opacityValue.textContent=`${opacity.value}%`};
   const up=document.createElement('button');up.type='button';up.className='track-order';up.textContent='↑';up.title=`Move ${file.name} up`;up.setAttribute('aria-label',up.title);up.onclick=()=>moveRoute(route,-1);
   const down=document.createElement('button');down.type='button';down.className='track-order';down.textContent='↓';down.title=`Move ${file.name} down`;down.setAttribute('aria-label',down.title);down.onclick=()=>moveRoute(route,1);
   route.up=up;route.down=down;
   controls.append(opacityLabel,opacity,opacityValue,up,down);
+  const widthControls=document.createElement('div');widthControls.className='track-controls';
+  const widthLabel=document.createElement('label');widthLabel.textContent='Line width';
+  const width=document.createElement('input');width.type='range';width.className='track-width';width.min='1';width.max='16';width.value='4';width.setAttribute('aria-label',`Line width for ${file.name}`);
+  const widthValue=document.createElement('span');widthValue.className='track-width-value';widthValue.textContent='4 px';
+  width.oninput=()=>{route.width=Number(width.value);widthValue.textContent=`${width.value} px`;routeCanvas.redraw()};
+  widthControls.append(widthLabel,width,widthValue);
+  const colouring=document.createElement('select');colouring.className='track-colouring';colouring.setAttribute('aria-label',`Colouring for ${file.name}`);
+  const solidOption=document.createElement('option');solidOption.value='solid';solidOption.textContent='Solid colour';
+  const speedOption=document.createElement('option');speedOption.value='speed';speedOption.textContent='Pace (mm:ss / 500 m)';speedOption.disabled=!timedEdges;
+  colouring.append(solidOption,speedOption);
+  colouring.onchange=()=>{
+    route.mode=colouring.value;
+    refreshSpeedColours();updateTotals();
+  };
   const details=document.createElement('span');details.className='track-details';details.textContent=`${count.toLocaleString()} points · ${(metres/1000).toFixed(2)} km`;
-  row.append(visible,name,picker,remove,controls,details);
+  if(!timedEdges)details.textContent+=' · no usable times';
+  else if(timedEdges<count-segments.length)details.textContent+=' · some intervals lack times';
+  row.append(visible,name,picker,remove,controls,widthControls,colouring,details);
   document.querySelector('#tracks').append(row);
   syncRouteOrder();
   updateTotals();
