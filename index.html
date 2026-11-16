@@ -8,6 +8,7 @@
 *{box-sizing:border-box}body{margin:0;font:15px system-ui,sans-serif;color:#172b35;background:#eef3f4}.top{padding:16px 20px;background:#12313b;color:#fff;display:flex;align-items:center;justify-content:space-between}.top h1{font-size:20px;margin:0}.layout{display:grid;grid-template-columns:300px 1fr;height:calc(100vh - 60px)}aside{padding:18px;background:#fff;overflow:auto;border-right:1px solid #d7e0e2}#map{height:100%;background:#dce9e8}.card{padding:13px 0;border-bottom:1px solid #e3e9ea}.card h2{font-size:14px;margin:0 0 10px}.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{background:#eef5f4;border-radius:8px;padding:10px}.stat b{display:block;font-size:19px}.muted{font-size:12px;color:#60747b;line-height:1.5}.btn{display:inline-block;padding:9px 12px;background:#087f79;color:white;border-radius:6px;cursor:pointer;border:0;font:inherit}.reach{display:flex;align-items:center;gap:8px;margin:8px 0}.reach input{accent-color:#087f79}.warning{padding:10px;background:#fff7df;border-radius:6px;font-size:12px;line-height:1.5;margin-top:12px}.leaflet-control-attribution{font-size:10px!important}
 .track-row{display:grid;grid-template-columns:20px minmax(0,1fr) 38px 24px;gap:6px;align-items:center;margin:8px 0;padding:8px;background:#f0f6f6;border-radius:6px}.track-name{width:100%;min-width:0;padding:5px;border:1px solid #ccd9db;border-radius:4px;font:inherit}.track-color{width:38px;height:30px;padding:0;border:0;background:transparent;cursor:pointer}.track-remove{border:0;background:transparent;color:#60747b;font-size:20px;cursor:pointer}.track-controls{grid-column:1/-1;display:flex;align-items:center;gap:5px}.track-controls label{font-size:11px;color:#60747b}.track-opacity{min-width:0;flex:1;accent-color:#087f79}.track-opacity-value{width:35px;text-align:right;font-size:11px;color:#60747b}.track-order{width:24px;height:24px;padding:0;border:1px solid #ccd9db;border-radius:4px;background:#fff;color:#172b35;cursor:pointer}.track-order:disabled{opacity:.4;cursor:default}.track-colouring{grid-column:1/-1;width:100%;padding:4px;border:1px solid #ccd9db;border-radius:4px;background:#fff;color:#172b35;font:inherit;font-size:12px}.track-details{grid-column:1/-1;font-size:11px;color:#60747b}.speed-legend{margin-top:10px;font-size:11px;color:#60747b}.speed-scale{height:10px;margin:5px 0 3px;border-radius:3px;background:linear-gradient(to right,#000004 0%,#230c4c 12.5%,#5a116e 25%,#8f2469 37.5%,#c13a50 50%,#e9612b 62.5%,#fb9b06 75%,#f5d949 87.5%,#fcffa4 100%)}.speed-labels{display:flex;justify-content:space-between}.speed-unknown{display:inline-block;width:10px;height:10px;background:#78858b;margin:0 3px 0 0}
 .track-width{min-width:0;flex:1;accent-color:#087f79}.track-width-value{width:35px;text-align:right;font-size:11px;color:#60747b}.scale-mode-label{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px}.scale-mode-label select{font:inherit;padding:3px;border:1px solid #ccd9db;border-radius:4px;background:#fff}.scale-inputs{display:flex;gap:8px;margin-top:8px}.scale-inputs label{display:flex;align-items:center;gap:4px;flex:1}.pace-input{width:72px;min-width:0;padding:4px;border:1px solid #ccd9db;border-radius:4px;font:inherit}.scale-error{color:#a33622;margin:6px 0}
+.track-crop{grid-column:1/-1;padding:7px;background:#fff;border:1px solid #d7e0e2;border-radius:5px}.track-crop summary{cursor:pointer;color:#087f79;font-size:12px;font-weight:600}.crop-control{display:grid;grid-template-columns:38px 1fr;gap:4px;align-items:center;margin-top:8px;font-size:11px;color:#60747b}.crop-control input{width:100%;min-width:0;accent-color:#087f79}.crop-value{grid-column:2;font-size:11px;color:#60747b}.crop-actions{display:flex;gap:6px;margin-top:9px}.crop-actions button{font:inherit;font-size:11px;padding:5px 7px;border:1px solid #ccd9db;border-radius:4px;background:#fff;color:#172b35;cursor:pointer}.crop-status{margin:5px 0 0;font-size:11px;color:#a33622}
 @media(max-width:700px){.layout{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:calc(100vh - 60px)}aside{max-height:230px;border-right:0;border-bottom:1px solid #d7e0e2;display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px}.card{padding:5px}}
 </style></head><body>
 <header class="top"><h1>🚣 Tideway Steering Viewer</h1><span style="font-size:12px">Putney Bridge ↔ Chiswick Bridge</span></header>
@@ -146,7 +147,7 @@ function parseGpx(source){
       const lon=Number(node.getAttribute('lon'));
       const timeText=[...node.children].find(child=>child.localName==='time')?.textContent.trim();
       const parsedTime=timeText?Date.parse(timeText):NaN;
-      return {lat,lon,time:Number.isFinite(parsedTime)?parsedTime:null};
+      return {lat,lon,time:Number.isFinite(parsedTime)?parsedTime:null,node};
     })
     .filter(point=>Number.isFinite(point.lat)&&Number.isFinite(point.lon)&&Math.abs(point.lat)<=90&&Math.abs(point.lon)<=180);
   const children=(parent,name)=>points([...parent.children].filter(child=>child.localName===name));
@@ -318,15 +319,109 @@ function moveRoute(route,offset){
   syncRouteOrder();
 }
 
+function routeMetrics(segments){
+  const bounds=L.latLngBounds([]);
+  let metres=0,points=0;
+  for(const segment of segments){
+    let previous=null;
+    for(const point of segment){
+      bounds.extend([point.lat,point.lon]);
+      if(previous)metres+=map.distance([previous.lat,previous.lon],[point.lat,point.lon]);
+      previous=point;
+      points++;
+    }
+  }
+  return {bounds,metres,points};
+}
+
+function croppedSegments(segments,start,end){
+  let index=0;
+  let first=null,last=null;
+  const cropped=[];
+  for(const segment of segments){
+    const selected=[];
+    for(const point of segment){
+      if(index>=start&&index<=end)selected.push({point,index});
+      index++;
+    }
+    if(selected.length<2)continue;
+    if(first===null)first=selected[0].index;
+    last=selected[selected.length-1].index;
+    cropped.push(selected.map(item=>item.point));
+  }
+  return {segments:cropped,start:first,end:last};
+}
+
+function setRouteCrop(route,start,end){
+  const crop=croppedSegments(route.sourceSegments,start,end);
+  const {segments}=crop;
+  if(!segments.length)return false;
+  Object.assign(route,{segments,...routeMetrics(segments),velocityEdges:velocityEdgesFor(segments),cropStart:crop.start,cropEnd:crop.end});
+  const timedEdges=route.velocityEdges.filter(edge=>edge.kmh!==null).length;
+  route.speedOption.disabled=!timedEdges;
+  if(!timedEdges&&route.mode==='speed'){
+    route.mode='solid';
+    route.colouring.value='solid';
+  }
+  route.details.textContent=`${route.points.toLocaleString()} points · ${(route.metres/1000).toFixed(2)} km`;
+  if(!timedEdges)route.details.textContent+=' · no usable times';
+  else if(timedEdges<route.points-route.segments.length)route.details.textContent+=' · some intervals lack times';
+  refreshSpeedColours();
+  updateTotals();
+  return true;
+}
+
+function downloadCroppedRoute(route){
+  const sourceRoot=route.sourceSegments[0][0].node.ownerDocument.documentElement;
+  const namespace=sourceRoot.namespaceURI;
+  const output=document.implementation.createDocument(namespace,'gpx',null);
+  const root=output.documentElement;
+  root.setAttribute('version',sourceRoot.getAttribute('version')||'1.1');
+  root.setAttribute('creator','Tideway Steering Viewer');
+  const track=output.createElementNS(namespace,'trk');
+  const title=output.createElementNS(namespace,'name');
+  title.textContent=route.name.trim()||'Cropped row';
+  track.append(title);
+  for(const segment of route.segments){
+    const trackSegment=output.createElementNS(namespace,'trkseg');
+    for(const point of segment){
+      const trackPoint=output.createElementNS(namespace,'trkpt');
+      for(const attribute of point.node.attributes){
+        if(attribute.namespaceURI)trackPoint.setAttributeNS(attribute.namespaceURI,attribute.name,attribute.value);
+        else trackPoint.setAttribute(attribute.name,attribute.value);
+      }
+      for(const child of point.node.childNodes)trackPoint.append(output.importNode(child,true));
+      trackSegment.append(trackPoint);
+    }
+    track.append(trackSegment);
+  }
+  root.append(track);
+  const blob=new Blob(['<?xml version="1.0" encoding="UTF-8"?>\n',new XMLSerializer().serializeToString(output)],{type:'application/gpx+xml'});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement('a');
+  link.href=url;
+  link.download=`${(route.name.trim()||'row').replace(/[\\/:*?"<>|]+/g,'_')}-cropped.gpx`;
+  document.body.append(link);link.click();link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
 function addRoute(file,segments){
   const color=palette[routes.length%palette.length];
   const velocityEdges=velocityEdgesFor(segments);
   const timedEdges=velocityEdges.filter(edge=>edge.kmh!==null).length;
-  const bounds=L.latLngBounds([]);
-  for(const segment of segments)for(const point of segment)bounds.extend([point.lat,point.lon]);
-  const metres=segments.reduce((total,points)=>total+points.slice(1).reduce((sum,point,index)=>sum+map.distance([points[index].lat,points[index].lon],[point.lat,point.lon]),0),0);
-  const count=segments.reduce((total,points)=>total+points.length,0);
-  const route={segments,velocityEdges,bounds,metres,points:count,visible:true,name:file.name.replace(/\.gpx$/i,''),color,opacity:.95,width:4,mode:'solid'};
+  const metrics=routeMetrics(segments);
+  const sourcePoints=segments.flat();
+  const cumulativeMetres=[];
+  let distanceAlong=0;
+  for(const segment of segments){
+    let previous=null;
+    for(const point of segment){
+      if(previous)distanceAlong+=map.distance([previous.lat,previous.lon],[point.lat,point.lon]);
+      cumulativeMetres.push(distanceAlong);
+      previous=point;
+    }
+  }
+  const route={sourceSegments:segments,sourcePoints,cumulativeMetres,segments,velocityEdges,...metrics,cropStart:0,cropEnd:sourcePoints.length-1,visible:true,name:file.name.replace(/\.gpx$/i,''),color,opacity:.95,width:4,mode:'solid'};
   routes.push(route);
 
   const row=document.createElement('div');row.className='track-row';
@@ -358,14 +453,58 @@ function addRoute(file,segments){
   const solidOption=document.createElement('option');solidOption.value='solid';solidOption.textContent='Solid colour';
   const speedOption=document.createElement('option');speedOption.value='speed';speedOption.textContent='Pace (mm:ss / 500 m)';speedOption.disabled=!timedEdges;
   colouring.append(solidOption,speedOption);
+  route.colouring=colouring;
+  route.speedOption=speedOption;
   colouring.onchange=()=>{
     route.mode=colouring.value;
     refreshSpeedColours();updateTotals();
   };
-  const details=document.createElement('span');details.className='track-details';details.textContent=`${count.toLocaleString()} points · ${(metres/1000).toFixed(2)} km`;
+  const details=document.createElement('span');details.className='track-details';details.textContent=`${route.points.toLocaleString()} points · ${(route.metres/1000).toFixed(2)} km`;
   if(!timedEdges)details.textContent+=' · no usable times';
-  else if(timedEdges<count-segments.length)details.textContent+=' · some intervals lack times';
-  row.append(visible,name,picker,remove,controls,widthControls,colouring,details);
+  else if(timedEdges<route.points-segments.length)details.textContent+=' · some intervals lack times';
+  route.details=details;
+  const crop=document.createElement('details');crop.className='track-crop';
+  const cropHeading=document.createElement('summary');cropHeading.textContent='Crop start/end';
+  const cropStartLabel=document.createElement('label');cropStartLabel.className='crop-control';cropStartLabel.append('Start');
+  const cropStart=document.createElement('input');cropStart.type='range';cropStart.min='0';cropStart.max=String(sourcePoints.length-2);cropStart.value='0';cropStart.setAttribute('aria-label',`Crop start for ${file.name}`);
+  const cropStartValue=document.createElement('span');cropStartValue.className='crop-value';cropStartLabel.append(cropStart,cropStartValue);
+  const cropEndLabel=document.createElement('label');cropEndLabel.className='crop-control';cropEndLabel.append('End');
+  const cropEnd=document.createElement('input');cropEnd.type='range';cropEnd.min='1';cropEnd.max=String(sourcePoints.length-1);cropEnd.value=String(sourcePoints.length-1);cropEnd.setAttribute('aria-label',`Crop end for ${file.name}`);
+  const cropEndValue=document.createElement('span');cropEndValue.className='crop-value';cropEndLabel.append(cropEnd,cropEndValue);
+  const cropStatus=document.createElement('p');cropStatus.className='crop-status';cropStatus.setAttribute('role','status');
+  const cropActions=document.createElement('div');cropActions.className='crop-actions';
+  const resetCrop=document.createElement('button');resetCrop.type='button';resetCrop.textContent='Reset crop';
+  const download=document.createElement('button');download.type='button';download.textContent='Download cropped GPX';
+  cropActions.append(resetCrop,download);
+  const positionLabel=index=>`${index+1} / ${sourcePoints.length} points · ${(cumulativeMetres[index]/1000).toFixed(2)} km`;
+  const showCropPositions=()=>{
+    cropStartValue.textContent=positionLabel(Number(cropStart.value));
+    cropEndValue.textContent=positionLabel(Number(cropEnd.value));
+  };
+  const changeCrop=changed=>{
+    let start=Number(cropStart.value),end=Number(cropEnd.value);
+    if(start>=end){
+      if(changed==='start')end=Math.min(sourcePoints.length-1,start+1);
+      else start=Math.max(0,end-1);
+      cropStart.value=String(start);cropEnd.value=String(end);
+    }
+    if(setRouteCrop(route,start,end)){
+      cropStatus.textContent='';
+      cropStart.value=String(route.cropStart);cropEnd.value=String(route.cropEnd);
+    }
+    else{
+      cropStatus.textContent='Keep at least two points in the same track segment.';
+      cropStart.value=String(route.cropStart);cropEnd.value=String(route.cropEnd);
+    }
+    showCropPositions();
+  };
+  cropStart.oninput=()=>changeCrop('start');
+  cropEnd.oninput=()=>changeCrop('end');
+  resetCrop.onclick=()=>{cropStart.value='0';cropEnd.value=String(sourcePoints.length-1);changeCrop('start')};
+  download.onclick=()=>downloadCroppedRoute(route);
+  showCropPositions();
+  crop.append(cropHeading,cropStartLabel,cropEndLabel,cropStatus,cropActions);
+  row.append(visible,name,picker,remove,controls,widthControls,colouring,details,crop);
   document.querySelector('#tracks').append(row);
   syncRouteOrder();
   updateTotals();
